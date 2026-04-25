@@ -92,16 +92,8 @@ export default function AppShell({ children }) {
       ) : (
         <>
           <div className={topBarClass}>
-            <div className="app-container grid h-20 grid-cols-[auto_1fr] items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
+            <div className="app-container grid h-20 grid-cols-[auto_1fr_auto] items-center gap-4 md:grid-cols-[1fr_auto_1fr]">
               <div className="flex items-center gap-3 justify-self-start">
-                <button
-                  type="button"
-                  onClick={() => setMobileOpen(true)}
-                  className={`rounded-full p-2 md:hidden ${isHomeRoute ? "home-nav-mobile" : "theme-surface text-[rgb(var(--text))]"}`}
-                  aria-label="Open menu"
-                >
-                  <Menu className="h-5 w-5" />
-                </button>
                 <Link to="/" className="flex items-center gap-3">
                   <img src="/logo.png" alt="LifeLink" className="h-8 w-8 object-contain" />
                   <span className={`text-lg font-black tracking-tight ${isHomeRoute ? "home-brand-text" : "text-[rgb(var(--text))]"}`}>
@@ -119,37 +111,55 @@ export default function AppShell({ children }) {
 
               <div className="flex items-center gap-3 justify-self-end">
                 {isAuthed ? (
-                  <Link
-                    to="/profile"
-                    className={`inline-flex items-center rounded-full transition-all ${
-                      isHomeRoute ? "home-user-pill" : "theme-surface"
-                    }`}
-                    aria-label="Open profile"
-                  >
-                    <div
-                      className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-black ${
-                        isHomeRoute ? "home-user-avatar" : "bg-[rgba(var(--accent)/0.14)] text-[rgb(var(--accent-dark))]"
+                  <>
+                    <Link
+                      to="/profile"
+                      className={`hidden sm:inline-flex items-center rounded-full transition-all ${
+                        isHomeRoute ? "home-user-pill" : "theme-surface"
                       }`}
+                      aria-label="Open profile"
                     >
-                      {(user?.name || "U").slice(0, 1).toUpperCase()}
-                    </div>
-                  </Link>
+                      <div
+                        className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-black ${
+                          isHomeRoute ? "home-user-avatar" : "bg-[rgba(var(--accent)/0.14)] text-[rgb(var(--accent-dark))]"
+                        }`}
+                      >
+                        {(user?.name || "U").slice(0, 1).toUpperCase()}
+                      </div>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => setMobileOpen(true)}
+                      className={`rounded-full p-2 md:hidden ${isHomeRoute ? "home-nav-mobile" : "theme-surface text-[rgb(var(--text))]"}`}
+                      aria-label="Open menu"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </button>
+                  </>
                 ) : (
                   <>
                     <button
                       type="button"
                       onClick={toggleTheme}
-                      className={`btn-ghost text-sm !py-2.5 !px-4 ${ghostOnHero}`}
+                      className={`btn-ghost hidden text-sm !py-2.5 !px-4 md:inline-flex ${ghostOnHero}`}
                       aria-label="Toggle theme"
                     >
                       {theme === "light" ? <MoonStar className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
                     </button>
-                    <Link to="/login" className={`btn-ghost text-sm !py-2.5 !px-4 ${ghostOnHero}`}>
+                    <Link to="/login" className={`btn-ghost hidden text-sm !py-2.5 !px-4 md:inline-flex ${ghostOnHero}`}>
                       <LogIn className="h-4 w-4" /> Log in
                     </Link>
-                    <Link to="/register" className="btn-primary text-sm !py-2.5 !px-4">
+                    <Link to="/register" className="btn-primary hidden text-sm !py-2.5 !px-4 md:inline-flex">
                       <UserPlus className="h-4 w-4" /> Get started
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => setMobileOpen(true)}
+                      className={`rounded-full p-2 md:hidden ${isHomeRoute ? "home-nav-mobile" : "theme-surface text-[rgb(var(--text))]"}`}
+                      aria-label="Open menu"
+                    >
+                      <Menu className="h-5 w-5" />
+                    </button>
                   </>
                 )}
               </div>
@@ -199,20 +209,52 @@ export default function AppShell({ children }) {
                     ))}
                   </div>
 
-                  {isAuthed ? null : (
-                    <button type="button" onClick={toggleTheme} className="btn-ghost mt-6 w-full justify-center text-sm">
-                      {theme === "light" ? <MoonStar className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
-                      Switch to {theme === "light" ? "dark" : "light"} theme
-                    </button>
+                  {isAuthed ? (
+                    <div className="mt-6 space-y-3">
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileOpen(false)}
+                        className="theme-surface flex items-center gap-3 rounded-[1.25rem] px-4 py-4 text-[rgb(var(--text))]"
+                      >
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-black ${
+                            isHomeRoute ? "home-user-avatar" : "bg-[rgba(var(--accent)/0.14)] text-[rgb(var(--accent-dark))]"
+                          }`}
+                        >
+                          {(user?.name || "U").slice(0, 1).toUpperCase()}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="truncate text-sm font-black text-[rgb(var(--text))]">{user?.name || "Profile"}</div>
+                          <div className="truncate text-xs uppercase tracking-[0.18em] text-[rgb(var(--muted))]">
+                            {user?.role || "member"}
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  ) : (
+                    <div className="mt-6 space-y-3">
+                      <button type="button" onClick={toggleTheme} className="btn-ghost w-full justify-center text-sm">
+                        {theme === "light" ? <MoonStar className="h-4 w-4" /> : <SunMedium className="h-4 w-4" />}
+                        Switch to {theme === "light" ? "dark" : "light"} theme
+                      </button>
+                      <Link to="/login" onClick={() => setMobileOpen(false)} className="btn-ghost w-full justify-center text-sm">
+                        <LogIn className="h-4 w-4" /> Log in
+                      </Link>
+                      <Link to="/register" onClick={() => setMobileOpen(false)} className="btn-primary w-full justify-center text-sm">
+                        <UserPlus className="h-4 w-4" /> Get started
+                      </Link>
+                    </div>
                   )}
 
-                  <div className="mt-6 text-xs text-[rgb(var(--muted))]">{location.pathname}</div>
+                  {location.pathname !== "/" ? (
+                    <div className="mt-6 text-xs text-[rgb(var(--muted))]">{location.pathname}</div>
+                  ) : null}
                 </motion.div>
               </>
             )}
           </AnimatePresence>
 
-          {isHomeRoute ? <div className="w-full">{children}</div> : <div className="app-container py-8">{children}</div>}
+          {isHomeRoute ? <div className="w-full">{children}</div> : <div className="app-container py-6 sm:py-8">{children}</div>}
 
           <footer className="border-t border-[rgba(var(--ring)/0.72)] bg-[rgba(var(--surface)/0.56)] backdrop-blur-xl">
             <div className="app-container flex flex-col gap-4 py-8 md:flex-row md:items-center md:justify-between">

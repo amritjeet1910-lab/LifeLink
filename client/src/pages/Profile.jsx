@@ -17,7 +17,7 @@ const tabs = [
 
 function ToggleRow({ title, description, checked, onChange }) {
   return (
-    <label className="flex items-center justify-between gap-4 rounded-[1.4rem] border border-[rgba(var(--ring)/0.74)] bg-[rgba(var(--surface)/0.58)] px-4 py-4">
+    <label className="toggle-row-compact flex items-center justify-between gap-4 rounded-[1.4rem] border border-[rgba(var(--ring)/0.74)] bg-[rgba(var(--surface)/0.58)] px-4 py-4">
       <div>
         <div className="text-sm font-black text-[rgb(var(--text))]">{title}</div>
         <div className="mt-1 text-xs leading-relaxed text-[rgb(var(--muted))]">{description}</div>
@@ -371,13 +371,13 @@ export default function Profile() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-wrap">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   type="button"
                   onClick={() => setTab(tab.id)}
-                  className={`inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-black transition ${
+                  className={`inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-black transition sm:justify-start ${
                     currentTab === tab.id
                       ? "bg-[rgba(var(--accent)/0.12)] text-[rgb(var(--accent-dark))]"
                       : "bg-[rgba(var(--surface)/0.52)] text-[rgb(var(--muted))] hover:text-[rgb(var(--text))]"
@@ -395,7 +395,7 @@ export default function Profile() {
           {currentTab === "profile" ? (
             <>
               <form onSubmit={saveProfile} className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-                <div className="glass-card rounded-[2rem] p-6 md:p-8 space-y-6">
+                <div className="glass-card rounded-[2rem] p-5 md:p-8 space-y-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <div className="text-xl font-black text-[rgb(var(--text))]">Personal details</div>
@@ -459,7 +459,7 @@ export default function Profile() {
                   </div>
                 </div>
 
-                <div className="glass-card rounded-[2rem] p-6 md:p-8 space-y-5">
+                <div className="glass-card rounded-[2rem] p-5 md:p-8 space-y-5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
                       <div className="text-xl font-black text-[rgb(var(--text))]">Location</div>
@@ -495,7 +495,7 @@ export default function Profile() {
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <button type="button" onClick={captureGps} disabled={isLocating} className="btn-primary justify-center text-sm !rounded-2xl disabled:opacity-60">
+                    <button type="button" onClick={captureGps} disabled={isLocating} className="btn-primary justify-center text-sm !rounded-2xl disabled:opacity-60 sm:w-auto">
                       <Crosshair className="h-4 w-4" /> {isLocating ? "Locating…" : "Capture precise GPS"}
                     </button>
                     <div className="rounded-2xl border border-[rgba(var(--ring)/0.74)] bg-[rgba(var(--surface)/0.58)] px-4 py-3 text-sm text-[rgb(var(--muted))]">
@@ -523,7 +523,7 @@ export default function Profile() {
           ) : null}
 
           {currentTab === "notifications" ? (
-            <div className="glass-card rounded-[2rem] p-6 md:p-8 space-y-6">
+            <div className="glass-card rounded-[2rem] p-5 md:p-8 space-y-6">
               <div>
                 <div className="text-xl font-black text-[rgb(var(--text))]">Notifications</div>
                 <div className="mt-2 text-sm text-[rgb(var(--muted))]">Recent activity now appears here, along with the delivery preferences that shape it.</div>
@@ -595,7 +595,7 @@ export default function Profile() {
                 onChange={(value) => updateSettings("notifications", "emailDigest", value)}
               />
 
-              <button type="button" onClick={saveSettings} disabled={isSavingSettings} className="btn-primary text-sm !rounded-2xl disabled:opacity-60">
+              <button type="button" onClick={saveSettings} disabled={isSavingSettings} className="btn-primary text-sm !rounded-2xl disabled:opacity-60 sm:w-auto">
                 <Save className="h-4 w-4" /> {isSavingSettings ? "Saving…" : "Save notification preferences"}
               </button>
             </div>
@@ -604,7 +604,7 @@ export default function Profile() {
           {currentTab === "settings" ? (
             <div className="space-y-6">
               <div className="grid gap-6 xl:grid-cols-[1fr_0.95fr]">
-                <div className="glass-card rounded-[2rem] p-6 md:p-8 space-y-6">
+                <div className="glass-card rounded-[2rem] p-5 md:p-8 space-y-6">
                   <div>
                     <div className="text-xl font-black text-[rgb(var(--text))]">Appearance and accessibility</div>
                     <div className="mt-2 text-sm text-[rgb(var(--muted))]">Adjust the interface for comfort, visibility, and lower cognitive load during urgent tasks.</div>
@@ -663,7 +663,7 @@ export default function Profile() {
                   </div>
                 </div>
 
-                <div className="glass-card rounded-[2rem] p-6 md:p-8 space-y-6">
+                <div className="glass-card rounded-[2rem] p-5 md:p-8 space-y-6">
                   {isRequester ? (
                     <>
                       <div>

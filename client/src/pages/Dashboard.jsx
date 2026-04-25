@@ -364,10 +364,10 @@ function RequesterDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="chip">Requester</div>
-          <h1 className="mt-3 text-3xl md:text-4xl font-black tracking-tight">Create an emergency request</h1>
+          <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl md:text-4xl">Create an emergency request</h1>
           <p className="text-slate-600 mt-2 max-w-2xl">
             Use GPS to pin the patient location, dispatch nearby donors instantly, and track the donor in real time after acceptance.
           </p>
@@ -385,7 +385,7 @@ function RequesterDashboard() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
-        <div className="panel rounded-[2rem] p-6 md:p-8">
+        <div className="panel rounded-[2rem] p-5 md:p-8">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-lg font-black">Request analytics</div>
@@ -394,7 +394,7 @@ function RequesterDashboard() {
             <TrendingUp className="h-5 w-5 text-red-600" />
           </div>
           <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="h-[260px]">
+            <div className="h-[220px] sm:h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyTrend}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -406,7 +406,7 @@ function RequesterDashboard() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-            <div className="h-[260px]">
+            <div className="h-[220px] sm:h-[260px]">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={urgencyBreakdown} dataKey="value" nameKey="name" innerRadius={52} outerRadius={82} paddingAngle={4}>
@@ -421,7 +421,7 @@ function RequesterDashboard() {
           </div>
         </div>
 
-        <div className="panel rounded-[2rem] p-6 md:p-8">
+        <div className="panel rounded-[2rem] p-5 md:p-8">
           <div className="flex items-center justify-between">
             <div className="text-lg font-black">Recent notifications</div>
             <div className="text-xs text-slate-500">{notifications.length} items</div>
@@ -454,14 +454,14 @@ function RequesterDashboard() {
           onSubmit={submit}
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          className="panel rounded-[2rem] p-6 md:p-8 space-y-5"
+          className="panel rounded-[2rem] p-5 md:p-8 space-y-5"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-lg font-black">Request details</div>
             <button
               type="button"
               onClick={captureGps}
-              className="btn-ghost text-sm !py-2.5 !px-4 !rounded-2xl"
+              className="btn-ghost text-sm !py-2.5 !px-4 !rounded-2xl sm:w-auto"
             >
               <Crosshair className="w-4 h-4" /> {coords ? "Update GPS" : "Use GPS"}
             </button>
@@ -521,7 +521,7 @@ function RequesterDashboard() {
           </div>
 
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
-            <div className="panel-soft rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+            <div className="panel-soft rounded-2xl px-4 py-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
               <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-red-600" />
                 {coords ? `Location ready (±${Math.round(coords.accuracy)}m)` : "GPS preferred · map pin fallback supported"}
@@ -552,10 +552,10 @@ function RequesterDashboard() {
           </button>
         </motion.form>
 
-        <div className="panel rounded-[2rem] p-6 md:p-8 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="panel rounded-[2rem] p-5 md:p-8 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-lg font-black">My requests</div>
-            <button type="button" className="btn-ghost text-sm !py-2.5 !px-4 !rounded-2xl" onClick={() => loadMyRequests().catch(() => {})}>
+            <button type="button" className="btn-ghost text-sm !py-2.5 !px-4 !rounded-2xl sm:w-auto" onClick={() => loadMyRequests().catch(() => {})}>
               <Radar className="w-4 h-4" /> Refresh
             </button>
           </div>
@@ -603,7 +603,7 @@ function RequesterDashboard() {
       </div>
 
       {activeRequestId && (
-        <div className="panel rounded-[2rem] p-6 md:p-8 space-y-4">
+        <div className="panel rounded-[2rem] p-5 md:p-8 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <div className="text-lg font-black">Live tracking</div>
@@ -905,14 +905,14 @@ function DonorDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="chip">Donor</div>
-          <h1 className="mt-3 text-3xl md:text-4xl font-black tracking-tight">Emergency dispatch inbox</h1>
+          <h1 className="mt-3 text-2xl font-black tracking-tight sm:text-3xl md:text-4xl">Emergency dispatch inbox</h1>
           <p className="text-slate-600 mt-2 max-w-2xl">Accept a nearby request, then share live GPS so the requester can track your route.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={toggleAvailability} className="btn-ghost text-sm !py-2.5 !px-4 !rounded-2xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button onClick={toggleAvailability} className="btn-ghost text-sm !py-2.5 !px-4 !rounded-2xl sm:w-auto">
             <span className={`w-2 h-2 rounded-full ${user?.availability ? "bg-emerald-500 animate-pulse" : "bg-slate-400"}`} />
             {user?.availability ? "Available" : "Unavailable"}
           </button>
@@ -930,7 +930,7 @@ function DonorDashboard() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="panel rounded-[2rem] p-6 md:p-8">
+        <div className="panel rounded-[2rem] p-5 md:p-8">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-lg font-black">Donor analytics</div>
@@ -938,7 +938,7 @@ function DonorDashboard() {
             </div>
             <Droplets className="h-5 w-5 text-red-600" />
           </div>
-          <div className="mt-6 h-[280px]">
+          <div className="mt-6 h-[220px] sm:h-[280px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyTrend}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -952,7 +952,7 @@ function DonorDashboard() {
           </div>
         </div>
 
-        <div className="panel rounded-[2rem] p-6 md:p-8">
+        <div className="panel rounded-[2rem] p-5 md:p-8">
           <div className="flex items-center justify-between">
             <div className="text-lg font-black">Notifications</div>
             <div className="text-xs text-slate-500">{notifications.length} items</div>
@@ -981,7 +981,7 @@ function DonorDashboard() {
       </div>
 
       {(error || geoError || status) && (
-        <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid gap-4 md:grid-cols-3">
           <div className="md:col-span-2 panel-soft rounded-2xl px-5 py-4 border border-slate-200">
             <div className="text-sm font-bold">Live GPS</div>
             <div className="text-xs text-slate-600 mt-1">{status || "Opt-in only. You can stop anytime."}</div>
@@ -995,8 +995,8 @@ function DonorDashboard() {
       )}
 
       <div className="grid lg:grid-cols-[0.95fr_1.05fr] gap-6">
-        <div className="panel rounded-[2rem] p-6 md:p-8 space-y-4">
-          <div className="flex items-center justify-between">
+        <div className="panel rounded-[2rem] p-5 md:p-8 space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-lg font-black">Incoming requests</div>
             <div className="text-xs text-slate-500">{inbox.length} alerts</div>
           </div>
@@ -1004,7 +1004,7 @@ function DonorDashboard() {
           <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
             {inbox.map((n) => (
               <div key={n.requestId} className="rounded-2xl border border-slate-200 bg-white p-4">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <div className="text-sm font-black flex items-center gap-2">
                       <span className="inline-flex items-center justify-center w-9 h-9 rounded-2xl bg-red-50 border border-red-100 text-red-700 font-black">
@@ -1018,7 +1018,7 @@ function DonorDashboard() {
                       <span className={n.urgency === "Urgent" ? "text-red-700 font-black" : "text-slate-600 font-black"}>{n.urgency}</span>
                     </div>
                   </div>
-                  <button className="btn-primary text-xs !py-2.5 !px-4 !rounded-2xl" onClick={() => accept(n.requestId)}>
+                  <button className="btn-primary text-xs !py-2.5 !px-4 !rounded-2xl sm:w-auto" onClick={() => accept(n.requestId)}>
                     <Phone className="w-4 h-4" /> Accept
                   </button>
                 </div>
@@ -1032,7 +1032,7 @@ function DonorDashboard() {
           </div>
         </div>
 
-        <div className="panel rounded-[2rem] p-6 md:p-8 space-y-4">
+        <div className="panel rounded-[2rem] p-5 md:p-8 space-y-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
               <div className="text-lg font-black">Active route</div>
@@ -1069,7 +1069,7 @@ function DonorDashboard() {
           </div>
 
           <div className="rounded-2xl overflow-hidden border border-slate-200">
-            <MapContainer center={donorLatLng || requestLatLng || savedUserLatLng} zoom={13} style={{ height: 320, width: "100%" }}>
+            <MapContainer center={donorLatLng || requestLatLng || savedUserLatLng} zoom={13} style={{ height: 280, width: "100%" }}>
               <RecenterMap center={donorLatLng || requestLatLng || savedUserLatLng} zoom={13} />
               <SatelliteMapLayers />
               <NearbyMedicalPlaces center={donorLatLng || requestLatLng || savedUserLatLng} radiusMeters={3500} />
@@ -1106,7 +1106,7 @@ function DonorDashboard() {
             </MapContainer>
           </div>
 
-          <div className="panel-soft rounded-2xl px-4 py-3 flex items-center justify-between flex-wrap gap-3">
+          <div className="panel-soft rounded-2xl px-4 py-3 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-3">
             <div className="text-sm text-slate-700">{activeRequestId ? `Tracking request ${activeRequestId.slice(-6)}` : "No active request"}</div>
             <div className="text-xs text-slate-500">{position ? `±${Math.round(position.accuracy)}m` : ""}</div>
           </div>
@@ -1145,9 +1145,9 @@ export default function Dashboard() {
 
   if (user?.role === "admin") {
     return (
-      <div className="glass-card rounded-[2rem] p-8">
+      <div className="glass-card rounded-[2rem] p-6 md:p-8">
         <div className="chip">Admin</div>
-        <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950">Admin tools live in the control center</h1>
+        <h1 className="mt-4 text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">Admin tools live in the control center</h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
           We keep the donor/requester workflow separate so admin actions stay focused on platform management.
         </p>

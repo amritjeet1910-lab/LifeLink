@@ -36,19 +36,12 @@ export default function Home() {
 
         <div className="app-container flex min-h-[100dvh] items-end pb-12 pt-24 sm:pb-16 lg:pb-20">
           <div className="max-w-[760px] rounded-[2rem] p-6 sm:p-8 lg:p-10">
-            <motion.div {...fadeUp(0)}>
-              <span className="chip">
-                <Droplets className="h-3 w-3" /> Real-time blood network
-              </span>
-            </motion.div>
 
             <motion.h1
               {...fadeUp(0.06)}
               className="home-hero-title mt-6 max-w-[680px] text-[clamp(2.85rem,5vw,4rem)] font-black leading-[0.9] tracking-[-0.065em]"
             >
               Find the right donor,
-              <br />
-              dispatch instantly,
               <br />
               <span className="text-[rgb(var(--accent-2))]">track with confidence.</span>
             </motion.h1>
@@ -82,7 +75,7 @@ export default function Home() {
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,rgba(var(--bg)/0)_0%,rgba(var(--bg)/0.92)_100%)]" />
       </section>
 
-      <div className="app-container space-y-20 py-18 sm:py-20">
+      <div className="app-container space-y-20 py-16 sm:py-20">
         <section className="grid gap-4 md:grid-cols-3">
           {[
             { key: "Dispatch", value: "<10s", text: "Broadcast a request to nearby donors the moment it is created.", icon: TimerReset },

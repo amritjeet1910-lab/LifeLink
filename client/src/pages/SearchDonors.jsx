@@ -104,14 +104,14 @@ const SearchDonors = () => {
   return (
     <div className="space-y-6">
         {/* Page header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight">Find <span className="text-gradient">Donors</span></h1>
+            <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Find <span className="text-gradient">Donors</span></h1>
             <p className="text-slate-600 text-sm mt-1">
               {position ? 'Searching near your current location' : 'Turn on GPS for nearby results'}
             </p>
           </div>
-          <span className="badge-green">{filtered.filter(d => d.available).length} donors available now</span>
+          <span className="badge-green self-start md:self-auto">{filtered.filter(d => d.available).length} donors available now</span>
         </div>
 
         <div className="grid lg:grid-cols-[360px_1fr] gap-6 items-start">
@@ -152,7 +152,7 @@ const SearchDonors = () => {
               </div>
 
               {/* Location controls */}
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <button
                   type="button"
                   onClick={() => (isRunning ? stop() : start())}
@@ -219,7 +219,7 @@ const SearchDonors = () => {
               <div className="px-5 pt-5 pb-3">
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-600">Nearby Donors</h3>
               </div>
-              <div className="overflow-y-auto px-3 pb-3 space-y-2 max-h-[420px] lg:max-h-[640px]">
+              <div className="overflow-y-auto px-3 pb-3 space-y-2 max-h-[360px] sm:max-h-[420px] lg:max-h-[640px]">
                 {isLoading && donors.length === 0 && (
                   <div className="p-4 panel-soft rounded-2xl border border-slate-200 text-slate-700 text-sm">
                     Loading real-time donors…
@@ -233,7 +233,7 @@ const SearchDonors = () => {
                       donor.available ? 'hover:border-emerald-300' : 'opacity-60'
                     }`}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                       <div className="w-11 h-11 bg-red-600 rounded-2xl flex items-center justify-center font-black text-sm text-white flex-shrink-0">
                         {donor.bloodGroup}
                       </div>
@@ -248,7 +248,7 @@ const SearchDonors = () => {
                         </div>
                       </div>
                       {donor.available && (
-                        <button className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors">
+                        <button className="shrink-0 p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors">
                           <Phone className="w-4 h-4" />
                         </button>
                       )}
@@ -266,7 +266,7 @@ const SearchDonors = () => {
 
           {/* Map */}
           <div className="panel rounded-2xl overflow-hidden relative">
-            <div className="h-[420px] md:h-[520px]">
+            <div className="h-[320px] sm:h-[420px] md:h-[520px]">
               <MapContainer
                 center={mapCenter}
                 zoom={13}
@@ -298,7 +298,7 @@ const SearchDonors = () => {
             </div>
 
             {/* Map overlay tag */}
-            <div className="absolute top-4 left-4 z-[1000] panel-soft rounded-xl px-3 py-2 flex items-center gap-2">
+            <div className="absolute left-3 right-3 top-3 z-[1000] flex items-center gap-2 rounded-xl panel-soft px-3 py-2 sm:left-4 sm:right-auto sm:top-4">
               <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
               <span className="text-xs font-bold text-slate-700">
                 {position ? `Live Map · ${Math.round(radiusKm)}km` : 'Live Map · Enable GPS'}

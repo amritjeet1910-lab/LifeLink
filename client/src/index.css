@@ -599,16 +599,16 @@
 .auth-shell {
   width: 100%;
   max-width: 100vw;
-  height: 100dvh;
+  min-height: 100dvh;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  overflow: clip;
+  overflow: hidden;
   background: rgb(var(--bg));
 }
 
 .auth-left {
   position: relative;
-  height: 100dvh;
+  min-height: 100dvh;
   overflow: hidden;
   background: rgb(var(--bg));
 }
@@ -683,7 +683,7 @@
 }
 
 .auth-right {
-  height: 100dvh;
+  min-height: 100dvh;
   padding: 28px 28px 24px;
   display: flex;
   align-items: center;
@@ -697,7 +697,7 @@
 
 .auth-card {
   width: 100%;
-  max-width:720px;
+  max-width: 720px;
   padding: 28px;
 }
 
@@ -904,22 +904,79 @@
   }
 
   .auth-mobile-brand {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
   }
 }
 
 @media (max-width: 640px) {
+  .chip,
+  .badge-rose,
+  .badge-green {
+    letter-spacing: 0.14em;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-ghost {
+    width: 100%;
+  }
+
   .auth-right {
-    padding: 20px;
+    padding: 18px 16px 24px;
   }
 
   .auth-card {
-    padding: 22px;
-    border-radius: 22px;
+    max-width: none;
+    padding: 20px 0 8px;
+  }
+
+  .auth-right-foot {
+    max-width: none;
+  }
+
+  .auth-home-link {
+    font-size: 0.78rem;
   }
 
   .auth-map {
-    height: 240px;
+    height: 220px;
+  }
+
+  .auth-location-meta {
+    padding: 12px 14px;
+  }
+
+  .auth-location-value {
+    font-size: 0.9rem;
+  }
+
+  .home-hero-title {
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+  }
+
+  .home-hero-copy {
+    font-size: 0.98rem;
+    line-height: 1.65;
+  }
+
+  .home-inline-image-overlay {
+    padding: 1rem;
+  }
+
+  .home-step-number {
+    font-size: 1.6rem;
+  }
+
+  .toggle-row-compact {
+    align-items: flex-start;
+  }
+
+  .toggle-row-compact button {
+    margin-top: 2px;
   }
 }
 

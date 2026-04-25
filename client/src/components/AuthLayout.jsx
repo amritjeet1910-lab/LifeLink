@@ -53,6 +53,12 @@ export default function AuthLayout({
 
       {/* Right: form */}
       <div className="auth-right">
+        <Link to="/" className="auth-mobile-brand">
+          <img src="/logo.png" alt="LifeLink" className="h-10 w-10 object-contain" />
+          <span className="auth-brand-wordmark text-[1.8rem] font-black tracking-tight">
+            Life<span className="text-[rgb(var(--accent-2))]">Link</span>
+          </span>
+        </Link>
         <div className="auth-right-foot auth-top-link">
           <Link to="/" className="auth-home-link">
             <ArrowLeft className="h-4 w-4" /> Return to home

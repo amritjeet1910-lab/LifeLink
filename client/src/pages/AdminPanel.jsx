@@ -73,11 +73,11 @@ export default function AdminPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="glass-card rounded-[2rem] p-6 md:p-8">
+      <div className="glass-card rounded-[2rem] p-5 md:p-8">
         <div className="chip">Admin</div>
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-950 md:text-4xl">LifeLink control center</h1>
+            <h1 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl md:text-4xl">LifeLink control center</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
               Manage donors, requesters, live blood requests, and platform health from one real dashboard.
             </p>
@@ -98,7 +98,7 @@ export default function AdminPanel() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
-        <div className="glass-card rounded-[2rem] p-6">
+        <div className="glass-card rounded-[2rem] p-5 sm:p-6">
           <div className="flex items-center gap-2 text-lg font-black text-slate-950">
             <Shield className="h-5 w-5 text-red-600" /> User roles
           </div>
@@ -134,7 +134,7 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        <div className="glass-card rounded-[2rem] p-6">
+        <div className="glass-card rounded-[2rem] p-5 sm:p-6">
           <div className="flex items-center gap-2 text-lg font-black text-slate-950">
             <Activity className="h-5 w-5 text-red-600" /> Recent live requests
           </div>
@@ -165,7 +165,7 @@ export default function AdminPanel() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <div className="glass-card rounded-[2rem] p-6">
+        <div className="glass-card rounded-[2rem] p-5 sm:p-6">
           <div className="flex items-center gap-2 text-lg font-black text-slate-950">
             <Users className="h-5 w-5 text-red-600" /> Recently joined users
           </div>
@@ -191,7 +191,7 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        <div className="glass-card rounded-[2rem] p-6">
+        <div className="glass-card rounded-[2rem] p-5 sm:p-6">
           <div className="flex items-center gap-2 text-lg font-black text-slate-950">
             <Clock3 className="h-5 w-5 text-red-600" /> Full system roster
           </div>
@@ -227,10 +227,10 @@ export default function AdminPanel() {
         </div>
       </div>
 
-      <div className="glass-card rounded-[2rem] p-6">
+      <div className="glass-card rounded-[2rem] p-5 sm:p-6">
         <div className="text-lg font-black text-slate-950">All requests</div>
         <div className="mt-5 overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left text-sm">
+          <table className="w-full min-w-[640px] text-left text-sm sm:min-w-[760px]">
             <thead>
               <tr className="border-b border-white/50 text-xs uppercase tracking-[0.18em] text-slate-500">
                 <th className="pb-3">Hospital</th>
