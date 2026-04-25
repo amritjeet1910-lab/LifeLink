@@ -1,17 +1,22 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   AlertCircle,
+  Bell,
   CheckCircle2,
   Clock,
   Crosshair,
+  Droplets,
+  HeartPulse,
   MapPin,
   Navigation,
   Phone,
   Radar,
+  TrendingUp,
 } from "lucide-react";
-import { MapContainer, Marker, Popup, TileLayer, Polyline } from "react-leaflet";
+import { MapContainer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -22,6 +27,10 @@ import { api } from "../lib/api";
 import { useGeolocation } from "../hooks/useGeolocation";
 import { useSocket } from "../hooks/useSocket";
 import { capturePreciseLocation } from "../lib/geolocation";
+import { resolveEstimatedLocation } from "../lib/geolocation";
+import AuthLocationPicker from "../components/AuthLocationPicker.jsx";
+import { BarChart, Bar, CartesianGrid, PieChart, Pie, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { NearbyMedicalPlaces, RecenterMap, SatelliteMapLayers } from "../components/MapLayers.jsx";
 
 L.Marker.prototype.options.icon = L.icon({
   iconUrl: markerIcon,
@@ -40,6 +49,68 @@ function formatWhen(iso) {
   } catch {
     return "";
   }
+}
+
+function countByStatus(requests = []) {
+  return requests.reduce(
+    (acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    },
+    { Pending: 0, Accepted: 0, Completed: 0, Cancelled: 0 }
+  );
+}
+
+function buildMonthlyTrend(requests = []) {
+  const buckets = new Map();
+  requests.forEach((item) => {
+    const date = new Date(item.createdAt || item.updatedAt || Date.now());
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    if (!buckets.has(key)) {
+      buckets.set(key, {
+        key,
+        label: date.toLocaleString(undefined, { month: "short" }),
+        requests: 0,
+        completed: 0,
+      });
+    }
+    const bucket = buckets.get(key);
+    bucket.requests += 1;
+    if (item.status === "Completed") bucket.completed += 1;
+  });
+  return [...buckets.values()].slice(-6);
+}
+
+function buildNotificationFeed(requests = [], role = "requester") {
+  return requests
+    .flatMap((request) =>
+      (request.statusHistory || []).map((entry, idx) => ({
+        id: `${request._id}-${idx}-${entry.at}`,
+        title:
+          entry.status === "Accepted"
+            ? role === "donor"
+              ? `You accepted ${request.hospitalName || "a request"}`
+              : `${request.donor?.name || "A donor"} accepted ${request.hospitalName || "your request"}`
+            : `${request.hospitalName || "Request"} marked ${entry.status}`,
+        body: entry.note || request.location?.address || request.location?.pincode || "Blood request update",
+        when: entry.at,
+        bloodGroup: request.bloodGroup,
+      }))
+    )
+    .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime())
+    .slice(0, 8);
+}
+
+function DashboardStat({ icon: Icon, label, value, hint }) {
+  return (
+    <div className="panel-soft rounded-[1.6rem] px-4 py-4">
+      <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-slate-500">
+        <Icon className="h-4 w-4 text-red-600" /> {label}
+      </div>
+      <div className="mt-3 text-3xl font-black text-slate-950">{value}</div>
+      <div className="mt-1 text-xs text-slate-500">{hint}</div>
+    </div>
+  );
 }
 
 function RequesterDashboard() {
@@ -61,6 +132,7 @@ function RequesterDashboard() {
   const [activeRequestId, setActiveRequestId] = useState(null);
   const [activeRequest, setActiveRequest] = useState(null);
   const [donorLive, setDonorLive] = useState(null); // {lat,lng,accuracy,timestamp}
+  const [nearbyDonors, setNearbyDonors] = useState([]);
   const [isUpdatingRequest, setIsUpdatingRequest] = useState(false);
 
   const loadMyRequests = async () => {
@@ -84,6 +156,35 @@ function RequesterDashboard() {
       setTimeout(() => setStatus(""), 1500);
     } catch (err) {
       setError(err?.message || "Failed to get location");
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
+  const handleMapPick = async (nextCoordinates) => {
+    setError("");
+    setStatus("");
+    setIsLocating(true);
+    try {
+      const location = await resolveEstimatedLocation({
+        coordinates: nextCoordinates,
+        accuracy: 30,
+      });
+      setCoords({
+        lat: (location.coordinates || nextCoordinates)[1],
+        lng: (location.coordinates || nextCoordinates)[0],
+        accuracy: location.accuracy || 30,
+      });
+      if (location.address) setAddress(location.address);
+      if (location.pincode) setPincode(location.pincode);
+      setStatus(location.address ? "Pinned location resolved from the map." : "Pinned location selected.");
+    } catch (err) {
+      setCoords({
+        lat: nextCoordinates[1],
+        lng: nextCoordinates[0],
+        accuracy: 30,
+      });
+      setStatus("Pinned location selected.");
     } finally {
       setIsLocating(false);
     }
@@ -188,7 +289,7 @@ function RequesterDashboard() {
     setError("");
     setStatus("");
     if (!coords) {
-      setError("Please capture GPS location for this request.");
+      setError("Use GPS or pin the patient location on the map before dispatching the request.");
       return;
     }
     setIsSubmitting(true);
@@ -199,7 +300,8 @@ function RequesterDashboard() {
         hospitalName,
         address,
         pincode,
-        coordinates: [coords.lng, coords.lat],
+        coordinates: coords ? [coords.lng, coords.lat] : undefined,
+        accuracy: coords?.accuracy,
       });
       const request = res.data?.data;
       setStatus("Request created and dispatched to nearby donors.");
@@ -220,6 +322,45 @@ function RequesterDashboard() {
   }, [activeRequest?.location?.coordinates, coords]);
 
   const donorLatLng = donorLive ? [donorLive.lat, donorLive.lng] : null;
+  const draftRequestLatLng = coords ? [coords.lat, coords.lng] : null;
+  const savedUserLatLng = useMemo(() => {
+    const c = user?.location?.coordinates;
+    if (Array.isArray(c) && c.length >= 2) return [c[1], c[0]];
+    return [22.5937, 78.9629];
+  }, [user?.location?.coordinates]);
+  const statusCounts = useMemo(() => countByStatus(myRequests), [myRequests]);
+  const monthlyTrend = useMemo(() => buildMonthlyTrend(myRequests), [myRequests]);
+  const urgencyBreakdown = useMemo(
+    () => [
+      { name: "Urgent", value: myRequests.filter((item) => item.urgency === "Urgent").length },
+      { name: "Normal", value: myRequests.filter((item) => item.urgency !== "Urgent").length },
+    ],
+    [myRequests]
+  );
+  const notifications = useMemo(() => buildNotificationFeed(myRequests, "requester"), [myRequests]);
+  const completionRate = myRequests.length ? Math.round((statusCounts.Completed / myRequests.length) * 100) : 0;
+
+  useEffect(() => {
+    const lat = activeRequest?.location?.coordinates?.[1] ?? coords?.lat;
+    const lng = activeRequest?.location?.coordinates?.[0] ?? coords?.lng;
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setNearbyDonors([]);
+      return;
+    }
+
+    api
+      .get("/donors/nearby", {
+        params: {
+          lat,
+          lng,
+          maxDistance: 12000,
+          bloodGroup,
+          availableOnly: true,
+        },
+      })
+      .then((res) => setNearbyDonors(res.data?.data || []))
+      .catch(() => setNearbyDonors([]));
+  }, [activeRequest?.location?.coordinates, coords?.lat, coords?.lng, bloodGroup]);
 
   return (
     <div className="space-y-6">
@@ -233,6 +374,78 @@ function RequesterDashboard() {
         </div>
         <div className="panel-soft rounded-2xl px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-600">
           Socket: <span className={isConnected ? "text-emerald-700" : "text-amber-700"}>{isConnected ? "connected" : "offline"}</span>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <DashboardStat icon={Droplets} label="Total requests" value={myRequests.length} hint="All requests created from this account" />
+        <DashboardStat icon={CheckCircle2} label="Completed" value={statusCounts.Completed} hint={`${completionRate}% fulfillment rate`} />
+        <DashboardStat icon={HeartPulse} label="Live now" value={statusCounts.Pending + statusCounts.Accepted} hint="Requests still in motion" />
+        <DashboardStat icon={Bell} label="Notifications" value={notifications.length} hint="Recent request activity feed" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="panel rounded-[2rem] p-6 md:p-8">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-lg font-black">Request analytics</div>
+              <div className="mt-1 text-sm text-slate-600">A live picture of how your emergency requests are trending over time.</div>
+            </div>
+            <TrendingUp className="h-5 w-5 text-red-600" />
+          </div>
+          <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyTrend}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                  <Tooltip />
+                  <Bar dataKey="requests" fill="#dc2626" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="completed" fill="#0f766e" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={urgencyBreakdown} dataKey="value" nameKey="name" innerRadius={52} outerRadius={82} paddingAngle={4}>
+                    {urgencyBreakdown.map((entry) => (
+                      <Cell key={entry.name} fill={entry.name === "Urgent" ? "#dc2626" : "#f59e0b"} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        <div className="panel rounded-[2rem] p-6 md:p-8">
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-black">Recent notifications</div>
+            <div className="text-xs text-slate-500">{notifications.length} items</div>
+          </div>
+          <div className="mt-4 space-y-3">
+            {notifications.length > 0 ? (
+              notifications.map((item) => (
+                <div key={item.id} className="panel-soft rounded-[1.4rem] px-4 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-black text-slate-950">{item.title}</div>
+                      <div className="mt-1 text-xs leading-relaxed text-slate-600">{item.body}</div>
+                    </div>
+                    <div className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+                      {item.bloodGroup}
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-slate-500">{formatWhen(item.when)}</div>
+                </div>
+              ))
+            ) : (
+              <div className="panel-soft rounded-[1.4rem] px-4 py-4 text-sm text-slate-500">No notifications yet. Status changes on your requests will appear here.</div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -283,22 +496,41 @@ function RequesterDashboard() {
               <input className="input" value={hospitalName} onChange={(e) => setHospitalName(e.target.value)} placeholder="e.g., City Hospital" required />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-black uppercase tracking-widest text-slate-500">Pincode</label>
-              <input className="input" value={pincode} onChange={(e) => setPincode(e.target.value)} placeholder="e.g., 144001" required inputMode="numeric" />
+              <label className="text-xs font-black uppercase tracking-widest text-slate-500">Resolved pincode</label>
+              <input
+                className="input"
+                value={pincode}
+                onChange={(e) => setPincode(e.target.value)}
+                placeholder="Appears after GPS or map pin"
+                inputMode="numeric"
+              />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Address (optional)</label>
-            <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Ward / building / landmark" />
+            <label className="text-xs font-black uppercase tracking-widest text-slate-500">Address / landmark</label>
+            <input className="input" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Auto-filled after GPS or map pin, editable if needed" />
           </div>
 
-          <div className="panel-soft rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
-            <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-red-600" />
-              {coords ? `GPS locked (±${Math.round(coords.accuracy)}m)` : "GPS required for dispatch"}
+          <div className="space-y-3">
+            <div className="text-xs font-black uppercase tracking-widest text-slate-500">Pin patient location</div>
+            <AuthLocationPicker
+              coordinates={coords ? [coords.lng, coords.lat] : null}
+              onPick={handleMapPick}
+            />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-[1fr_auto]">
+            <div className="panel-soft rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+              <div className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-red-600" />
+                {coords ? `Location ready (±${Math.round(coords.accuracy)}m)` : "GPS preferred · map pin fallback supported"}
+              </div>
+              <div className="text-xs text-slate-500">{isLocating ? "Locating…" : ""}</div>
             </div>
-            <div className="text-xs text-slate-500">{isLocating ? "Locating…" : ""}</div>
+            <div className="panel-soft rounded-2xl px-4 py-3 text-xs text-slate-600">
+              Tap the map if GPS is unavailable or not accurate enough.
+            </div>
           </div>
 
           {error && (
@@ -409,8 +641,10 @@ function RequesterDashboard() {
           </div>
 
           <div className="rounded-2xl overflow-hidden border border-slate-200">
-            <MapContainer center={requestLatLng || [31.326, 75.5762]} zoom={13} style={{ height: 320, width: "100%" }}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+            <MapContainer center={requestLatLng || draftRequestLatLng || savedUserLatLng} zoom={13} style={{ height: 320, width: "100%" }}>
+              <RecenterMap center={requestLatLng || draftRequestLatLng || savedUserLatLng} zoom={13} />
+              <SatelliteMapLayers />
+              <NearbyMedicalPlaces center={requestLatLng || draftRequestLatLng || savedUserLatLng} radiusMeters={3500} />
               {requestLatLng && (
                 <Marker position={requestLatLng}>
                   <Popup>
@@ -427,6 +661,18 @@ function RequesterDashboard() {
                   </Popup>
                 </Marker>
               )}
+              {nearbyDonors.map((donor) => {
+                const donorCoords = donor?.location?.coordinates;
+                if (!Array.isArray(donorCoords) || donorCoords.length < 2) return null;
+                return (
+                  <Marker key={donor._id} position={[donorCoords[1], donorCoords[0]]}>
+                    <Popup>
+                      <div className="font-semibold">{donor.name}</div>
+                      <div className="text-xs text-gray-500">{donor.bloodGroup} · nearby donor</div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
               {requestLatLng && donorLatLng && <Polyline positions={[requestLatLng, donorLatLng]} pathOptions={{ color: "#dc2626", weight: 4, opacity: 0.85 }} />}
             </MapContainer>
           </div>
@@ -470,13 +716,24 @@ function DonorDashboard() {
   const { position, error: geoError, isRunning, start, stop } = useGeolocation();
 
   const [inbox, setInbox] = useState([]);
+  const [assignedRequests, setAssignedRequests] = useState([]);
   const [activeRequestId, setActiveRequestId] = useState(null);
   const [activeRequest, setActiveRequest] = useState(null);
+  const [nearbyRequests, setNearbyRequests] = useState([]);
   const [error, setError] = useState("");
   const [status, setStatus] = useState("");
   const [isUpdatingRequest, setIsUpdatingRequest] = useState(false);
   const lastPushRef = useRef(0);
   const lastProfilePushRef = useRef(0);
+
+  const loadAssignedRequests = async () => {
+    const res = await api.get("/requests/assigned");
+    setAssignedRequests(res.data?.data || []);
+  };
+
+  useEffect(() => {
+    loadAssignedRequests().catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
@@ -500,6 +757,7 @@ function DonorDashboard() {
       if (payload?.status) {
         setActiveRequest((prev) => (prev ? { ...prev, status: payload.status } : prev));
         setStatus(`Status: ${payload.status}`);
+        loadAssignedRequests().catch(() => {});
       }
     };
     socket.on("request_status", onStatusUpdate);
@@ -546,6 +804,7 @@ function DonorDashboard() {
 
       const detail = await api.get(`/requests/${requestId}`);
       setActiveRequest(detail.data?.data || null);
+      await loadAssignedRequests();
 
       setInbox((prev) => prev.filter((x) => x.requestId !== requestId));
     } catch (err) {
@@ -568,6 +827,7 @@ function DonorDashboard() {
       const res = await api.patch(`/requests/${activeRequestId}/complete`);
       if (res.data?.success) {
         await refreshActive();
+        await loadAssignedRequests();
         setStatus("Request completed.");
       }
     } catch (err) {
@@ -603,6 +863,45 @@ function DonorDashboard() {
   }, [activeRequest?.location?.coordinates]);
 
   const donorLatLng = position ? [position.lat, position.lng] : null;
+  const savedUserLatLng = useMemo(() => {
+    const c = user?.location?.coordinates;
+    if (Array.isArray(c) && c.length >= 2) return [c[1], c[0]];
+    return [22.5937, 78.9629];
+  }, [user?.location?.coordinates]);
+  const statusCounts = useMemo(() => countByStatus(assignedRequests), [assignedRequests]);
+  const monthlyTrend = useMemo(() => buildMonthlyTrend(assignedRequests), [assignedRequests]);
+  const notifications = useMemo(() => {
+    const assignedFeed = buildNotificationFeed(assignedRequests, "donor");
+    const liveFeed = inbox.slice(0, 8).map((item) => ({
+      id: `live-${item.requestId}`,
+      title: `${item.hospitalName || "Emergency request"} nearby`,
+      body: item.address || "New donor alert waiting in your inbox",
+      when: item.receivedAt,
+      bloodGroup: item.bloodGroup,
+    }));
+    return [...liveFeed, ...assignedFeed]
+      .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime())
+      .slice(0, 8);
+  }, [assignedRequests, inbox]);
+  const completionRate = assignedRequests.length ? Math.round((statusCounts.Completed / assignedRequests.length) * 100) : 0;
+
+  useEffect(() => {
+    if (!Number.isFinite(position?.lat) || !Number.isFinite(position?.lng)) {
+      setNearbyRequests([]);
+      return;
+    }
+
+    api
+      .get("/requests/nearby", {
+        params: {
+          lat: position.lat,
+          lng: position.lng,
+          maxDistance: 12000,
+        },
+      })
+      .then((res) => setNearbyRequests(res.data?.data || []))
+      .catch(() => setNearbyRequests([]));
+  }, [position?.lat, position?.lng, activeRequestId]);
 
   return (
     <div className="space-y-6">
@@ -619,6 +918,64 @@ function DonorDashboard() {
           </button>
           <div className="panel-soft rounded-2xl px-4 py-3 text-xs font-black uppercase tracking-widest text-slate-600">
             Socket: <span className={isConnected ? "text-emerald-700" : "text-amber-700"}>{isConnected ? "connected" : "offline"}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <DashboardStat icon={Bell} label="Live alerts" value={inbox.length} hint="Requests currently waiting for your response" />
+        <DashboardStat icon={CheckCircle2} label="Completed helps" value={statusCounts.Completed} hint={`${completionRate}% completion rate`} />
+        <DashboardStat icon={HeartPulse} label="Accepted" value={statusCounts.Accepted} hint="Requests you have taken on" />
+        <DashboardStat icon={TrendingUp} label="Assigned total" value={assignedRequests.length} hint="All requests linked to your donor account" />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <div className="panel rounded-[2rem] p-6 md:p-8">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-lg font-black">Donor analytics</div>
+              <div className="mt-1 text-sm text-slate-600">Track how often you accept and complete emergency dispatches over time.</div>
+            </div>
+            <Droplets className="h-5 w-5 text-red-600" />
+          </div>
+          <div className="mt-6 h-[280px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyTrend}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} />
+                <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                <Tooltip />
+                <Bar dataKey="requests" fill="#0f766e" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="completed" fill="#dc2626" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="panel rounded-[2rem] p-6 md:p-8">
+          <div className="flex items-center justify-between">
+            <div className="text-lg font-black">Notifications</div>
+            <div className="text-xs text-slate-500">{notifications.length} items</div>
+          </div>
+          <div className="mt-4 space-y-3">
+            {notifications.length > 0 ? (
+              notifications.map((item) => (
+                <div key={item.id} className="panel-soft rounded-[1.4rem] px-4 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-sm font-black text-slate-950">{item.title}</div>
+                      <div className="mt-1 text-xs leading-relaxed text-slate-600">{item.body}</div>
+                    </div>
+                    <div className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-red-700">
+                      {item.bloodGroup}
+                    </div>
+                  </div>
+                  <div className="mt-3 text-xs text-slate-500">{formatWhen(item.when)}</div>
+                </div>
+              ))
+            ) : (
+              <div className="panel-soft rounded-[1.4rem] px-4 py-4 text-sm text-slate-500">No notifications yet. New donor alerts and assigned-request updates will appear here.</div>
+            )}
           </div>
         </div>
       </div>
@@ -712,8 +1069,10 @@ function DonorDashboard() {
           </div>
 
           <div className="rounded-2xl overflow-hidden border border-slate-200">
-            <MapContainer center={requestLatLng || [31.326, 75.5762]} zoom={13} style={{ height: 320, width: "100%" }}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+            <MapContainer center={donorLatLng || requestLatLng || savedUserLatLng} zoom={13} style={{ height: 320, width: "100%" }}>
+              <RecenterMap center={donorLatLng || requestLatLng || savedUserLatLng} zoom={13} />
+              <SatelliteMapLayers />
+              <NearbyMedicalPlaces center={donorLatLng || requestLatLng || savedUserLatLng} radiusMeters={3500} />
               {requestLatLng && (
                 <Marker position={requestLatLng}>
                   <Popup>
@@ -730,6 +1089,19 @@ function DonorDashboard() {
                   </Popup>
                 </Marker>
               )}
+              {nearbyRequests.map((request) => {
+                const requestCoords = request?.location?.coordinates;
+                if (!Array.isArray(requestCoords) || requestCoords.length < 2) return null;
+                if (activeRequestId && request._id === activeRequestId) return null;
+                return (
+                  <Marker key={request._id} position={[requestCoords[1], requestCoords[0]]}>
+                    <Popup>
+                      <div className="font-semibold">{request.hospitalName || "Nearby request"}</div>
+                      <div className="text-xs text-gray-500">{request.bloodGroup} · {request.status}</div>
+                    </Popup>
+                  </Marker>
+                );
+              })}
               {requestLatLng && donorLatLng && <Polyline positions={[requestLatLng, donorLatLng]} pathOptions={{ color: "#dc2626", weight: 4, opacity: 0.85 }} />}
             </MapContainer>
           </div>
@@ -771,6 +1143,21 @@ export default function Dashboard() {
   if (isBootstrapping) return null;
   if (!isAuthed) return <Navigate to="/login" replace />;
 
-  if (user?.role === "donor" || user?.role === "admin") return <DonorDashboard />;
+  if (user?.role === "admin") {
+    return (
+      <div className="glass-card rounded-[2rem] p-8">
+        <div className="chip">Admin</div>
+        <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950">Admin tools live in the control center</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600">
+          We keep the donor/requester workflow separate so admin actions stay focused on platform management.
+        </p>
+        <div className="mt-5">
+          <Link to="/admin" className="btn-primary !rounded-2xl">Open admin dashboard</Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (user?.role === "donor") return <DonorDashboard />;
   return <RequesterDashboard />;
 }

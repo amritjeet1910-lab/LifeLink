@@ -1,29 +1,30 @@
 import BloodRequest from '../models/BloodRequest.js';
 import User from '../models/User.js';
 import { getIO } from '../socket.js';
+import { resolveLocationInput } from '../utils/locationUtils.js';
 
 // @desc    Create new blood request
 // @route   POST /api/requests
 // @access  Private
 export const createRequest = async (req, res) => {
   try {
-    const { bloodGroup, urgency, hospitalName, address, pincode, coordinates } = req.body;
-
-    if (!Array.isArray(coordinates) || coordinates.length < 2) {
-      return res.status(400).json({ success: false, message: 'coordinates are required as [lng, lat]' });
-    }
+    const { bloodGroup, urgency, hospitalName, address, pincode, coordinates, city, accuracy } = req.body;
+    const locale = req.body?.locale || req.headers["accept-language"];
+    const location = await resolveLocationInput({
+      coordinates,
+      pincode,
+      city,
+      address,
+      accuracy,
+      locale,
+    });
 
     const request = await BloodRequest.create({
       requester: req.user.id,
       bloodGroup,
       urgency,
       hospitalName,
-      location: {
-        type: 'Point',
-        coordinates,
-        address,
-        pincode
-      },
+      location,
       statusHistory: [{ status: 'Pending', by: req.user.id, note: 'Request created' }]
     });
 
@@ -36,7 +37,7 @@ export const createRequest = async (req, res) => {
         $near: {
           $geometry: {
             type: 'Point',
-            coordinates: coordinates
+            coordinates: location.coordinates
           },
           $maxDistance: 10000 // 10km radius
         }
@@ -54,7 +55,7 @@ export const createRequest = async (req, res) => {
         hospitalName,
         address,
         pincode,
-        coordinates,
+        coordinates: location.coordinates,
         targetDonors: donorIds,
       });
     });
@@ -90,6 +91,53 @@ export const getRequests = async (req, res) => {
   }
 };
 
+// @desc    Get nearby open requests using geo query
+// @route   GET /api/requests/nearby?lat=..&lng=..&maxDistance=..
+// @access  Private
+export const getNearbyRequests = async (req, res) => {
+  try {
+    const lat = Number(req.query.lat);
+    const lng = Number(req.query.lng);
+    const maxDistance = Math.min(Math.max(Number(req.query.maxDistance) || 10000, 500), 50000);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ success: false, message: "lat and lng are required numbers" });
+    }
+
+    const requests = await BloodRequest.aggregate([
+      {
+        $geoNear: {
+          near: { type: "Point", coordinates: [lng, lat] },
+          distanceField: "distanceMeters",
+          spherical: true,
+          maxDistance,
+          query: {
+            status: { $in: ["Pending", "Accepted"] },
+          },
+        },
+      },
+      {
+        $project: {
+          requester: 1,
+          bloodGroup: 1,
+          urgency: 1,
+          hospitalName: 1,
+          location: 1,
+          status: 1,
+          donor: 1,
+          distanceMeters: 1,
+          createdAt: 1,
+        },
+      },
+      { $limit: 200 },
+    ]);
+
+    res.status(200).json({ success: true, count: requests.length, data: requests });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 // @desc    Get my requests (requester)
 // @route   GET /api/requests/me
 // @access  Private
@@ -98,6 +146,21 @@ export const getMyRequests = async (req, res) => {
     const requests = await BloodRequest.find({ requester: req.user.id })
       .sort({ createdAt: -1 })
       .populate('donor', 'name email bloodGroup')
+      .select('-__v');
+    res.status(200).json({ success: true, count: requests.length, data: requests });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+// @desc    Get my assigned requests (donor)
+// @route   GET /api/requests/assigned
+// @access  Private
+export const getMyAssignedRequests = async (req, res) => {
+  try {
+    const requests = await BloodRequest.find({ donor: req.user.id })
+      .sort({ updatedAt: -1 })
+      .populate('requester', 'name email')
       .select('-__v');
     res.status(200).json({ success: true, count: requests.length, data: requests });
   } catch (err) {

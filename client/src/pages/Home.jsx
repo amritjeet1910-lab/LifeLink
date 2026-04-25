@@ -1,213 +1,248 @@
-import { Link } from 'react-router-dom';
-import { Search, Bell, Droplets, MapPin, ArrowRight, Navigation } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Link } from "react-router-dom";
+import {
+  ArrowRight,
+  BellRing,
+  ClipboardPlus,
+  Droplets,
+  HeartHandshake,
+  MapPinned,
+  Navigation,
+  Search,
+  ShieldCheck,
+  TimerReset,
+  Users,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { useAuth } from "../context/AuthContext.jsx";
 
 const fadeUp = (delay = 0) => ({
-  initial: { opacity: 0, y: 24 },
+  initial: { opacity: 0, y: 22 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.8, delay, ease: [0.16, 1, 0.3, 1] }
+  transition: { duration: 0.82, delay, ease: [0.16, 1, 0.3, 1] },
 });
 
-const Home = () => {
+export default function Home() {
+  const { isAuthed } = useAuth();
+
   return (
     <div className="w-full">
-      {/* HERO */}
-      <section className="relative w-full min-h-[calc(100dvh-8rem)] overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.78)_0%,rgba(248,250,252,1)_72%)] px-4 pt-24 sm:px-6 lg:px-10">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_16%_18%,rgba(220,38,38,0.16),transparent_26%),radial-gradient(circle_at_82%_22%,rgba(248,113,113,0.18),transparent_24%),linear-gradient(180deg,rgba(255,255,255,0.35)_0%,rgba(248,250,252,0)_50%)]" />
-        <div className="mx-auto grid min-h-[calc(100dvh-8rem)] w-full max-w-[1440px] items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:px-4">
-        <div className="space-y-6">
-          <motion.div {...fadeUp(0)}>
-            <span className="chip">
-              <Droplets className="w-3 h-3" /> Real-time Blood Network
-            </span>
-          </motion.div>
-          <motion.h1 {...fadeUp(0.06)} className="max-w-xl text-[clamp(2.5rem,4vw,4.2rem)] font-black tracking-[-0.04em] leading-[0.98] text-slate-950">
-            Faster blood
-            <br />
-            requests with
-            <br />
-            <span className="text-gradient">live coordination.</span>
-          </motion.h1>
-          <motion.p {...fadeUp(0.12)} className="max-w-lg text-base leading-relaxed text-slate-600 sm:text-lg">
-            Create urgent requests, notify nearby donors, and follow the response in real time with GPS-based matching and clear communication.
-          </motion.p>
-          <motion.div {...fadeUp(0.15)} className="flex flex-wrap gap-3">
-            <Link to="/dashboard" className="btn-primary text-base !rounded-2xl">
-              <Navigation className="w-4 h-4" /> Open dashboard
-            </Link>
-            <Link to="/search" className="btn-ghost text-base !rounded-2xl">
-              <Search className="w-4 h-4" /> Browse donors
-            </Link>
-            <Link to="/register" className="btn-ghost text-base !rounded-2xl">
-              Create account <ArrowRight className="w-4 h-4" />
-            </Link>
-          </motion.div>
+      <section className="relative min-h-[100dvh] overflow-hidden">
+        <div className="absolute inset-0 -z-20">
+          <div className="absolute inset-0 bg-[url('/hero-bg-mobile.png')] bg-cover bg-center md:hidden" />
+          <div className="absolute inset-0 hidden bg-[url('/hero-bg.png')] bg-cover bg-center md:block" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(var(--hero-scrim-start)/0.42)_0%,rgba(var(--hero-scrim-mid)/0.18)_34%,rgba(var(--hero-scrim-end)/0.06)_58%,rgba(var(--hero-scrim-end)/0.02)_100%)] md:bg-[linear-gradient(90deg,rgba(var(--hero-scrim-start)/0.34)_0%,rgba(var(--hero-scrim-mid)/0.12)_30%,rgba(var(--hero-scrim-end)/0.04)_54%,rgba(var(--hero-scrim-end)/0.01)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(var(--glow)/0.20),transparent_24%),linear-gradient(180deg,rgba(var(--bg)/0.10)_0%,rgba(var(--bg)/0.24)_100%)]" />
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="relative flex items-center justify-center"
-        >
-          <div className="absolute -top-6 -left-2 h-40 w-40 rounded-full bg-red-100 blur-3xl" />
-          <div className="absolute -bottom-10 -right-8 h-44 w-44 rounded-full bg-rose-100 blur-3xl" />
-          <div className="relative w-full max-w-[760px] overflow-hidden rounded-[2rem] border border-white/70 bg-white/60 p-3 shadow-[0_28px_80px_rgba(15,23,42,0.10)] backdrop-blur-sm">
-            <div className="overflow-hidden rounded-[1.6rem] bg-slate-100">
-              <img
-                src="/hero.png"
-                alt="LifeLink donor coordination"
-                className="h-[26rem] w-full object-cover sm:h-[30rem] lg:h-[34rem]"
-              />
-            </div>
-          </div>
-        </motion.div>
-        </div>
-      </section>
+        <div className="app-container flex min-h-[100dvh] items-end pb-12 pt-24 sm:pb-16 lg:pb-20">
+          <div className="max-w-[760px] rounded-[2rem] p-6 sm:p-8 lg:p-10">
+            <motion.div {...fadeUp(0)}>
+              <span className="chip">
+                <Droplets className="h-3 w-3" /> Real-time blood network
+              </span>
+            </motion.div>
 
-      <div className="app-container space-y-16 py-16">
-      {/* QUICK STATS */}
-      <section className="panel rounded-2xl p-6 md:p-8">
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { k: "Dispatch", v: "< 10s", d: "Create a request and notify nearby donors." },
-            { k: "Scope", v: "2–30km", d: "Adjust radius for better donor coverage." },
-            { k: "Tracking", v: "Live", d: "See donor movement after acceptance." },
-          ].map((s) => (
-            <div key={s.k} className="flex items-start gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center text-red-700 font-black">
-                {s.k.slice(0, 1)}
-              </div>
-              <div>
-                <div className="text-xs font-black uppercase tracking-widest text-slate-500">{s.k}</div>
-                <div className="text-2xl font-black mt-1">{s.v}</div>
-                <div className="text-sm text-slate-600 mt-1">{s.d}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── FEATURES ───────────────────────────── */}
-      <section className="space-y-8">
-        <div className="space-y-2">
-          <h2 className="text-3xl md:text-4xl font-black tracking-tight">How it works</h2>
-          <p className="text-slate-600 max-w-2xl">A complete end-to-end flow: create → dispatch → accept → track.</p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          {[
-            { icon: Search, title: 'Smart Search', desc: 'Search donors by blood group & pincode. Filter by distance.', color: 'bg-red-50 text-red-700', num: '01' },
-            { icon: Bell, title: 'Emergency Alerts', desc: 'One click dispatches real-time alerts to all nearby donors.', color: 'bg-slate-50 text-slate-700', num: '02' },
-            { icon: MapPin, title: 'Map Tracking', desc: 'Visualize donor availability on an interactive map.', color: 'bg-slate-50 text-slate-700', num: '03' },
-          ].map((f, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.12 }}
-              className="panel rounded-2xl p-8 space-y-5 group"
+            <motion.h1
+              {...fadeUp(0.06)}
+              className="home-hero-title mt-6 max-w-[680px] text-[clamp(2.85rem,5vw,4rem)] font-black leading-[0.9] tracking-[-0.065em]"
             >
-              <div className="flex items-start justify-between">
-                <div className={`w-12 h-12 ${f.color} rounded-2xl flex items-center justify-center`}>
-                  <f.icon className="w-6 h-6" />
-                </div>
-                <span className="text-5xl font-black text-slate-200 group-hover:text-slate-300 transition-colors">{f.num}</span>
+              Find the right donor,
+              <br />
+              dispatch instantly,
+              <br />
+              <span className="text-[rgb(var(--accent-2))]">track with confidence.</span>
+            </motion.h1>
+
+            <motion.p
+              {...fadeUp(0.12)}
+              className="home-hero-copy mt-5 max-w-[600px] text-base leading-[1.75] sm:text-lg"
+            >
+              LifeLink helps requesters, donors, and admins coordinate blood emergencies with precise GPS, self-pinned map locations,
+              live dispatch, and a calmer interface built for urgent moments.
+            </motion.p>
+
+            <motion.div {...fadeUp(0.18)} className="mt-8 flex flex-wrap gap-3">
+              {isAuthed ? (
+                <Link to="/dashboard" className="btn-primary text-base !px-6 !py-3.5">
+                  <Navigation className="h-4 w-4" /> Open dashboard
+                </Link>
+              ) : (
+                <Link to="/register" className="btn-primary text-base !px-6 !py-3.5">
+                  Create account <ArrowRight className="h-4 w-4" />
+                </Link>
+              )}
+              <Link to="/search" className="home-hero-secondary btn-ghost text-base !px-6 !py-3.5">
+                <Search className="h-4 w-4" /> Browse donors
+              </Link>
+            </motion.div>
+
+          </div>
+        </div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,rgba(var(--bg)/0)_0%,rgba(var(--bg)/0.92)_100%)]" />
+      </section>
+
+      <div className="app-container space-y-20 py-18 sm:py-20">
+        <section className="grid gap-4 md:grid-cols-3">
+          {[
+            { key: "Dispatch", value: "<10s", text: "Broadcast a request to nearby donors the moment it is created.", icon: TimerReset },
+            { key: "Radius", value: "2-30km", text: "Search wider or tighter depending on urgency and coverage.", icon: MapPinned },
+            { key: "Tracking", value: "Live", text: "See the donor route after acceptance with consent-based location sharing.", icon: BellRing },
+          ].map((item, index) => (
+            <motion.div
+              key={item.key}
+              {...fadeUp(0.05 + index * 0.06)}
+              whileHover={{ y: -6 }}
+              className="home-metric-card panel rounded-[1.75rem] p-6 md:p-7"
+            >
+              <div className="home-metric-icon">
+                <item.icon className="h-4 w-4" />
               </div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">{f.title}</h3>
-                <p className="text-slate-600 leading-relaxed text-sm">{f.desc}</p>
-              </div>
+              <div className="home-metric-label">{item.key}</div>
+              <div className="mt-4 text-4xl font-black tracking-tight text-[rgb(var(--text))]">{item.value}</div>
+              <div className="mt-3 max-w-[24ch] text-sm leading-relaxed text-[rgb(var(--muted))]">{item.text}</div>
             </motion.div>
           ))}
-        </div>
-      </section>
+        </section>
 
-      {/* ROLE GUIDES */}
-      <section className="grid lg:grid-cols-2 gap-6 items-start">
-        <div className="panel rounded-2xl p-6 md:p-8">
-          <div className="chip">For requesters</div>
-          <h3 className="mt-3 text-2xl font-black">Create a GPS request</h3>
-          <p className="text-slate-600 mt-2">A short checklist to minimize delays during emergencies.</p>
-          <ol className="mt-5 space-y-3">
-            {[
-              "Capture GPS with high accuracy (try outdoors if accuracy is poor).",
-              "Add hospital name, blood group, urgency and pincode.",
-              "Dispatch: nearby donors are alerted instantly.",
-              "After acceptance, track the donor live and coordinate pickup.",
-              "Mark completed (or cancel if no longer needed).",
-            ].map((t, idx) => (
-              <li key={t} className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-xs font-black text-slate-700">
-                  {String(idx + 1).padStart(2, "0")}
+        <section className="space-y-6">
+          <motion.div {...fadeUp(0.08)} className="home-flow-panel panel rounded-[2rem] p-7 md:p-8">
+            <div className="chip">
+              <ClipboardPlus className="h-3 w-3" /> Flow
+            </div>
+            <h2 className="mt-4 text-3xl font-black tracking-tight text-[rgb(var(--text))] md:text-4xl">
+              Designed around the real emergency sequence.
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-[1.8] text-[rgb(var(--muted))] sm:text-base">
+              Each step is placed logically so the platform feels calm under pressure: request creation, donor matching,
+              acceptance, route visibility, and completion.
+            </p>
+            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+              <div className="home-flow-detail glass-subtle rounded-[1.4rem] px-4 py-4">
+                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-[rgb(var(--muted))]">
+                  <MapPinned className="h-3.5 w-3.5 text-[rgb(var(--accent))]" /> Location intelligence
                 </div>
-                <div className="text-sm text-slate-700 leading-relaxed">{t}</div>
-              </li>
-            ))}
-          </ol>
-        </div>
-        <div className="panel rounded-2xl p-6 md:p-8">
-          <div className="chip">For donors</div>
-          <h3 className="mt-3 text-2xl font-black">Accept and share live GPS</h3>
-          <p className="text-slate-600 mt-2">Only share location when you’re actively helping.</p>
-          <ol className="mt-5 space-y-3">
-            {[
-              "Turn availability on so requests reach you.",
-              "Accept a request from the dispatch inbox.",
-              "Enable Live GPS to share your route to the requester.",
-              "Arrive and complete the donation.",
-              "Mark completed when done.",
-            ].map((t, idx) => (
-              <li key={t} className="flex items-start gap-3">
-                <div className="w-7 h-7 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-xs font-black text-slate-700">
-                  {String(idx + 1).padStart(2, "0")}
+                <div className="mt-2 text-sm font-black leading-relaxed text-[rgb(var(--text))]">Precise GPS first, with manual map pinning when needed.</div>
+              </div>
+              <div className="home-flow-detail glass-subtle rounded-[1.4rem] px-4 py-4">
+                <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-[rgb(var(--muted))]">
+                  <Users className="h-3.5 w-3.5 text-[rgb(var(--accent))]" /> Shared visibility
                 </div>
-                <div className="text-sm text-slate-700 leading-relaxed">{t}</div>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
+                <div className="mt-2 text-sm font-black leading-relaxed text-[rgb(var(--text))]">Requesters, donors, and admins stay aligned in real time.</div>
+              </div>
+            </div>
+          </motion.div>
 
-      {/* PRIVACY */}
-      <section className="panel rounded-2xl p-6 md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="text-sm font-black text-red-700 uppercase tracking-widest">Privacy & consent</div>
-            <div className="mt-2 text-xl font-black">GPS is opt-in. Tracking happens only when you allow it.</div>
-            <div className="mt-2 text-sm text-slate-600 max-w-3xl">
-              Requesters must capture location before dispatch. Donors can turn Live GPS on/off at any time. We recommend
-              sharing live location only for active emergencies.
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              { title: "Create request", desc: "Capture precise GPS when available or drop a pin on the map yourself for accurate dispatch.", num: "01", icon: ClipboardPlus },
+              { title: "Notify donors", desc: "Matching donors receive the request in real time, filtered by distance and blood group.", num: "02", icon: BellRing },
+              { title: "Track response", desc: "After acceptance, route visibility and status history keep everyone aligned.", num: "03", icon: Navigation },
+            ].map((item, index) => (
+              <motion.div
+                key={item.title}
+                {...fadeUp(0.12 + index * 0.06)}
+                whileHover={{ y: -6 }}
+                className="home-step-card panel rounded-[1.9rem] p-6 md:p-7"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="home-step-icon">
+                      <item.icon className="h-4 w-4" />
+                    </div>
+                    <div className="chip">{item.title}</div>
+                  </div>
+                  <div className="home-step-number">{item.num}</div>
+                </div>
+                <p className="mt-6 text-sm leading-[1.8] text-[rgb(var(--muted))]">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+
+        <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <motion.div {...fadeUp(0.08)} className="panel rounded-[2rem] p-7 md:p-8">
+            <div className="chip">
+              <HeartHandshake className="h-3 w-3" /> Experience
+            </div>
+            <h3 className="mt-4 text-3xl font-black tracking-tight text-[rgb(var(--text))]">
+              Better for requesters, donors, and admins — not just one role.
+            </h3>
+            <p className="mt-4 max-w-2xl text-sm leading-[1.8] text-[rgb(var(--muted))] sm:text-base">
+              The platform is structured so every role sees what matters first: requesters focus on speed, donors focus on clear decisions,
+              and admins focus on platform-wide visibility and control.
+            </p>
+            <motion.div
+              {...fadeUp(0.14)}
+              className="home-inline-image mt-8 overflow-hidden rounded-[1.6rem]"
+              whileHover={{ scale: 1.01 }}
+            >
+              <img src="/lifelink_community_donation_scene_1775928563152.png" alt="Community donation scene" className="h-[240px] w-full object-cover" />
+              <div className="home-inline-image-overlay">
+                <span className="badge-rose">Human-centered flow</span>
+                <div className="mt-3 max-w-sm text-lg font-black text-white">Supportive coordination for both urgent requests and willing donors.</div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <div className="grid gap-4">
+            <motion.div {...fadeUp(0.16)} whileHover={{ y: -5 }} className="panel rounded-[1.75rem] p-6">
+              <div className="chip">
+                <MapPinned className="h-3 w-3" /> Requester
+              </div>
+              <h4 className="mt-4 text-xl font-black text-[rgb(var(--text))]">Ask faster, with better location data</h4>
+              <p className="mt-3 text-sm leading-[1.75] text-[rgb(var(--muted))]">
+                Start with precise GPS and fall back to placing your own map pin when permissions fail or a device cannot lock accurately.
+              </p>
+            </motion.div>
+            <motion.div {...fadeUp(0.22)} whileHover={{ y: -5 }} className="panel rounded-[1.75rem] p-6">
+              <div className="chip">
+                <HeartHandshake className="h-3 w-3" /> Donor
+              </div>
+              <h4 className="mt-4 text-xl font-black text-[rgb(var(--text))]">Respond with clear, opt-in sharing</h4>
+              <p className="mt-3 text-sm leading-[1.75] text-[rgb(var(--muted))]">
+                Donors stay in control of availability and live route sharing, so tracking only happens during active help.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        <motion.section {...fadeUp(0.08)} className="panel rounded-[2rem] p-7 md:p-9">
+          <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+            <div>
+              <div className="chip">
+                <ShieldCheck className="h-3 w-3" /> Trust
+              </div>
+              <h3 className="mt-4 text-3xl font-black tracking-tight text-[rgb(var(--text))]">
+                Built for urgent moments, with calmer decisions.
+              </h3>
+              <p className="mt-4 max-w-xl text-sm leading-[1.8] text-[rgb(var(--muted))] sm:text-base">
+                LifeLink keeps the interface focused on what people need most during blood emergencies: speed, confidence, and clarity.
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {[
+                [BellRing, "Realtime matching", "Nearby donors receive alerts instantly."],
+                [ShieldCheck, "Privacy-first tracking", "Location sharing is active only with consent."],
+                [Users, "Role-based control", "Each role sees actions relevant to them."],
+              ].map(([Icon, title, text], index) => (
+                <motion.div
+                  key={title}
+                  {...fadeUp(0.12 + index * 0.05)}
+                  whileHover={{ y: -4 }}
+                  className="glass-subtle rounded-[1.5rem] px-4 py-5"
+                >
+                  <div className="home-trust-icon">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="text-sm font-black text-[rgb(var(--text))]">{title}</div>
+                  <div className="mt-2 text-sm leading-[1.7] text-[rgb(var(--muted))]">{text}</div>
+                </motion.div>
+              ))}
             </div>
           </div>
-          <div className="flex gap-3">
-            <Link to="/dashboard" className="btn-primary !rounded-2xl">Open dashboard</Link>
-            <Link to="/search" className="btn-ghost !rounded-2xl">Find donors</Link>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="panel rounded-2xl p-6 md:p-8">
-        <h3 className="text-2xl font-black">FAQ</h3>
-        <div className="mt-5 grid md:grid-cols-2 gap-6">
-          {[
-            { q: "Why does GPS need permission?", a: "So we can locate nearby donors and enable live tracking only after acceptance." },
-            { q: "What if GPS accuracy is poor?", a: "Try outdoors, enable high accuracy, and wait a few seconds for a better fix." },
-            { q: "Who receives my request?", a: "Only donors within the configured radius and matching blood group (and pincode filter, if set)." },
-            { q: "Can I cancel?", a: "Yes—while pending. After acceptance you can mark completed; donors can also complete once done." },
-          ].map((f) => (
-            <div key={f.q} className="border-l-2 border-slate-200 pl-4">
-              <div className="text-sm font-black">{f.q}</div>
-              <div className="text-sm text-slate-600 mt-1 leading-relaxed">{f.a}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+        </motion.section>
       </div>
     </div>
   );
-};
-
-export default Home;
+}

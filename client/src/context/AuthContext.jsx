@@ -65,6 +65,23 @@ export function AuthProvider({ children }) {
       return res.data.user;
     };
 
+    const googleAuthenticate = async (accessToken) => {
+      const res = await api.post("/auth/google", { accessToken });
+      if (!res.data?.success) throw new Error(res.data?.message || "Google sign-in failed");
+      persist(res.data.token, res.data.user);
+      return res.data.user;
+    };
+
+    const authenticateWithToken = async (nextToken) => {
+      setAuthToken(nextToken);
+      const res = await api.get("/auth/me", {
+        headers: { Authorization: `Bearer ${nextToken}` },
+      });
+      if (!res.data?.success) throw new Error(res.data?.message || "Failed to restore session");
+      persist(nextToken, res.data.data);
+      return res.data.data;
+    };
+
     const logout = () => persist(null, null);
 
     const refreshMe = async () => {
@@ -81,7 +98,7 @@ export function AuthProvider({ children }) {
       persist(token, nextUser);
     };
 
-    return { token, user, isBootstrapping, isAuthed: Boolean(token), login, register, logout, refreshMe, setUser };
+    return { token, user, isBootstrapping, isAuthed: Boolean(token), login, register, googleAuthenticate, authenticateWithToken, logout, refreshMe, setUser };
   }, [token, user, isBootstrapping]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

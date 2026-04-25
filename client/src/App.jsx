@@ -1,11 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import AppShell from './components/AppShell.jsx';
+import InstallPromptToast from './components/InstallPromptToast.jsx';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard.jsx';
 import SearchDonors from './pages/SearchDonors';
 import AdminPanel from './pages/AdminPanel';
+import Profile from './pages/Profile.jsx';
+import GoogleAuthCallback from './pages/GoogleAuthCallback.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 
@@ -25,9 +28,11 @@ function AnimatedRoutes() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/auth/callback" element={<GoogleAuthCallback />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/search" element={<SearchDonors />} />
           <Route path="/admin" element={<AdminPanel />} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </motion.div>
     </AnimatePresence>
@@ -39,6 +44,7 @@ function App() {
     <Router>
       <AppShell>
         <AnimatedRoutes />
+        <InstallPromptToast />
       </AppShell>
     </Router>
   );

@@ -13,14 +13,42 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 const io = initSocket(httpServer);
+const allowedOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((item) => item.trim())
+  .filter(Boolean);
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+    credentials: true,
+  })
+);
 
 // DB Connection
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connected successfully'))
+  .then(async () => {
+    console.log('✅ MongoDB connected successfully');
+
+    const cleanup = await User.updateMany(
+      {
+        location: { $exists: true },
+        $or: [
+          { "location.type": { $exists: false } },
+          { "location.type": { $ne: "Point" } },
+          { "location.coordinates.0": { $exists: false } },
+          { "location.coordinates.1": { $exists: false } },
+        ],
+      },
+      { $unset: { location: 1 } }
+    );
+
+    if (cleanup.modifiedCount > 0) {
+      console.log(`🧹 Cleared malformed location data for ${cleanup.modifiedCount} user(s)`);
+    }
+  })
   .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // Socket.io basic setup
@@ -98,6 +126,10 @@ app.use('/api/requests', requestRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/donors', donorRoutes);
 app.use('/api/users', userRoutes);
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ success: true, status: 'ok' });
+});
 
 app.get('/', (req, res) => {
   res.send('LifeLink API is running...');

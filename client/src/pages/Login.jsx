@@ -1,16 +1,18 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Mail, Lock } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
+import GoogleAuthButton from '../components/GoogleAuthButton.jsx';
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(() => searchParams.get('google_error') || '');
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -30,19 +32,19 @@ const Login = () => {
     <AuthLayout
       title="Welcome back"
       subtitle="Sign in to create requests, accept emergencies, and track live GPS — only when you opt in."
-      imageSrc="/lifelink_hero_tech_illustration_1775928376879.png"
+      imageSrc="/auth-bg.png"
       imageAlt="LifeLink login"
     >
       <div className="space-y-1">
-        <div className="text-3xl font-black text-slate-900">Welcome Back</div>
-        <div className="text-sm text-slate-600">Sign in to continue.</div>
+        <div className="text-3xl font-black text-[rgb(var(--text))]">Welcome Back</div>
+        <div className="text-sm text-[rgb(var(--muted))]">Sign in to continue.</div>
       </div>
 
       <form className="mt-6 space-y-4" onSubmit={onSubmit}>
         <div className="space-y-2">
           <div className="auth-label">Email address</div>
           <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--muted))]" />
             <input
               type="email"
               placeholder="Email Address"
@@ -58,12 +60,12 @@ const Login = () => {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="auth-label">Password</div>
-            <button type="button" className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 transition-colors">
+            <button type="button" className="text-xs font-semibold text-[rgb(var(--accent))] transition-colors hover:opacity-85">
               Forgot password?
             </button>
           </div>
           <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--muted))]" />
             <input
               type="password"
               placeholder="Password"
@@ -88,14 +90,12 @@ const Login = () => {
 
         <div className="auth-sep">OR</div>
 
-        <button type="button" className="auth-btn-outline">
-          Continue with Google
-        </button>
+        <GoogleAuthButton disabled={isSubmitting} />
       </form>
 
-      <div className="mt-6 text-sm text-white/60">
+      <div className="mt-6 text-sm text-[rgb(var(--muted))]">
         Don&apos;t have an account?{" "}
-        <Link to="/register" className="text-emerald-700 font-semibold hover:text-emerald-800">
+        <Link to="/register" className="font-semibold text-[rgb(var(--accent))] hover:opacity-85">
           Sign Up
         </Link>
       </div>

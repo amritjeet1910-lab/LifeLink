@@ -2,13 +2,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShieldCheck, MapPin, Activity, ArrowRight } from "lucide-react";
-
-const leftItems = [
-  { icon: ShieldCheck, title: "Verified roles", desc: "Requester / Donor / Admin access control." },
-  { icon: MapPin, title: "GPS opt-in", desc: "High-accuracy GPS capture with consent." },
-  { icon: Activity, title: "Realtime flow", desc: "Dispatch → accept → live tracking." },
-];
+import { ArrowLeft } from "lucide-react";
 
 export default function AuthLayout({
   title,
@@ -41,49 +35,29 @@ export default function AuthLayout({
           />
         )}
         <div className="auth-left-overlay" />
-
         <div className="auth-left-content">
           <Link to="/" className="auth-brand">
-            <img src="/logo.png" alt="LifeLink" className="h-9 w-9 object-contain" />
-            <span className="text-xl font-black tracking-tight text-slate-900">
-              Life<span className="text-red-600">Link</span>
+            <img src="/logo.png" alt="LifeLink" className="h-10 w-10 object-contain" />
+            <span className="auth-brand-wordmark text-[2rem] font-black tracking-tight">
+              Life<span className="text-[rgb(var(--accent-2))]">Link</span>
             </span>
           </Link>
 
-          <div className="mt-10 max-w-md">
-            <div className="text-xs font-black uppercase tracking-[0.28em] text-slate-600">
-              Blood network platform
-            </div>
-            <div className="mt-3 text-4xl font-black leading-[1.05] text-slate-900">
-              {title}
-            </div>
-            <div className="mt-3 text-slate-700 text-sm leading-relaxed">
-              {subtitle}
-            </div>
-          </div>
-
-          <div className="mt-10 grid gap-4 max-w-md">
-            {leftItems.map((it) => (
-              <div key={it.title} className="auth-left-item">
-                <it.icon className="h-5 w-5 text-red-600" />
-                <div>
-                  <div className="text-sm font-black text-slate-900">{it.title}</div>
-                  <div className="text-xs text-slate-600 mt-0.5">{it.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-auto pt-10 text-xs text-slate-600">
-            <span className="font-semibold text-slate-700">Tip:</span> Place your image at{" "}
-            <code className="text-slate-700">client/public/auth-hero.jpg</code>
-            {" "}to replace this panel.
+          <div className="auth-left-copy">
+            <div className="auth-left-kicker">Blood network platform</div>
+            <h1 className="auth-left-title">{title}</h1>
+            <p className="auth-left-description">{subtitle}</p>
           </div>
         </div>
       </div>
 
       {/* Right: form */}
       <div className="auth-right">
+        <div className="auth-right-foot auth-top-link">
+          <Link to="/" className="auth-home-link">
+            <ArrowLeft className="h-4 w-4" /> Return to home
+          </Link>
+        </div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -92,11 +66,6 @@ export default function AuthLayout({
         >
           {children}
         </motion.div>
-        <div className="auth-right-foot">
-          <Link to="/" className="text-xs text-slate-500 hover:text-slate-700 inline-flex items-center gap-2">
-            Back to home <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
       </div>
     </div>
   );

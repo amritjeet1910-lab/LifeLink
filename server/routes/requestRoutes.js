@@ -1,14 +1,17 @@
 import express from 'express';
-import { createRequest, getRequests, acceptRequest, getMyRequests, getRequestById, cancelRequest, completeRequest } from '../controllers/requestController.js';
+import { createRequest, getRequests, getNearbyRequests, acceptRequest, getMyRequests, getMyAssignedRequests, getRequestById, cancelRequest, completeRequest } from '../controllers/requestController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.get('/me', protect, authorize('requester', 'admin'), getMyRequests);
+router.get('/assigned', protect, authorize('donor', 'admin'), getMyAssignedRequests);
 
 router.route('/')
   .get(getRequests)
   .post(protect, authorize('requester', 'admin'), createRequest);
+
+router.get('/nearby', protect, getNearbyRequests);
 
 router.get('/:id', getRequestById);
 router.put('/:id/accept', protect, authorize('donor', 'admin'), acceptRequest);

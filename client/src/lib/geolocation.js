@@ -1,7 +1,10 @@
+import { api } from "./api";
+
 export async function capturePreciseLocation({
-  sampleMs = 7000,
-  hardTimeoutMs = 12000,
-  goodAccuracyM = 35,
+  sampleMs = 9000,
+  hardTimeoutMs = 15000,
+  goodAccuracyM = 25,
+  acceptableAccuracyM = 150,
 } = {}) {
   if (!navigator.geolocation) throw new Error("Geolocation not supported on this device.");
 
@@ -20,14 +23,14 @@ export async function capturePreciseLocation({
     };
 
     const sampleTimer = setTimeout(() => {
-      if (best) finish();
-      else finish(new Error("Could not get GPS fix. Try again near a window/outdoors."));
+      if (best?.accuracy <= acceptableAccuracyM) finish();
+      else finish(new Error(best ? `Location accuracy too low (about ${Math.round(best.accuracy)}m). Try again near a window or outdoors.` : "Could not get GPS fix. Try again near a window/outdoors."));
     }, sampleMs);
 
     const hardTimer = setTimeout(() => {
       clearTimeout(sampleTimer);
-      if (best) finish();
-      else finish(new Error("Timed out waiting for GPS permission/fix."));
+      if (best?.accuracy <= acceptableAccuracyM) finish();
+      else finish(new Error(best ? `Timed out before getting an accurate GPS fix (best was about ${Math.round(best.accuracy)}m).` : "Timed out waiting for GPS permission/fix."));
     }, hardTimeoutMs);
 
     const onPos = (pos) => {
@@ -61,3 +64,16 @@ export async function capturePreciseLocation({
   });
 }
 
+export async function resolveEstimatedLocation({ address, pincode, city, coordinates, accuracy }) {
+  const res = await api.post("/users/resolve-location", {
+    address,
+    pincode,
+    city,
+    coordinates,
+    accuracy,
+  });
+  if (!res.data?.success) {
+    throw new Error(res.data?.message || "Could not estimate location");
+  }
+  return res.data.data;
+}

@@ -1,6 +1,5 @@
-/* eslint-disable react/prop-types */
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Search, MapPin, Phone, SlidersHorizontal, Navigation, Radar } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -11,6 +10,8 @@ import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 import { api } from '../lib/api';
 import { formatDistance, toLeafletLatLng } from '../lib/geo';
 import { useGeolocation } from '../hooks/useGeolocation';
+import { useAuth } from '../context/AuthContext.jsx';
+import { NearbyMedicalPlaces, RecenterMap, SatelliteMapLayers } from '../components/MapLayers.jsx';
 
 L.Marker.prototype.options.icon = L.icon({
   iconUrl: markerIcon,
@@ -21,23 +22,21 @@ L.Marker.prototype.options.icon = L.icon({
 
 const bloodGroups = ['All', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
-function MapUpdater({ center }) {
-  const map = useMap();
-  useEffect(() => {
-    if (center) map.setView(center, Math.max(map.getZoom(), 13), { animate: true });
-  }, [center, map]);
-  return null;
-}
-
 const SearchDonors = () => {
+  const { user } = useAuth();
   const [selectedGroup, setSelectedGroup] = useState('All');
   const [pincode, setPincode] = useState('');
-  const [radiusKm, setRadiusKm] = useState(10);
+  const [radiusKm, setRadiusKm] = useState(user?.settings?.donorSearch?.defaultRadiusKm || 10);
   const [donors, setDonors] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const { position, error: geoError, isRunning, start, stop } = useGeolocation();
   const lastFetchRef = useRef(0);
+
+  useEffect(() => {
+    if (!user?.settings?.donorSearch?.defaultRadiusKm) return;
+    setRadiusKm(user.settings.donorSearch.defaultRadiusKm);
+  }, [user?.settings?.donorSearch?.defaultRadiusKm]);
 
   const filtered = useMemo(
     () => donors.filter((d) => selectedGroup === 'All' || d.bloodGroup === selectedGroup),
@@ -46,8 +45,12 @@ const SearchDonors = () => {
 
   const mapCenter = useMemo(() => {
     if (position) return [position.lat, position.lng];
-    return [31.3260, 75.5762];
-  }, [position]);
+    const savedCoords = user?.location?.coordinates;
+    if (Array.isArray(savedCoords) && savedCoords.length >= 2) {
+      return [savedCoords[1], savedCoords[0]];
+    }
+    return [22.5937, 78.9629];
+  }, [position, user?.location?.coordinates]);
 
   const loadDonors = async ({ lat, lng }, opts = {}) => {
     const now = Date.now();
@@ -64,12 +67,16 @@ const SearchDonors = () => {
           maxDistance: Math.round(radiusKm * 1000),
           bloodGroup: selectedGroup === 'All' ? undefined : selectedGroup,
           pincode: pincode || undefined,
-          availableOnly: true,
+          availableOnly: user?.settings?.donorSearch?.availableOnly ?? true,
         },
       });
       const list = res.data?.data || [];
+      const shouldPrioritizeNearest = user?.settings?.donorSearch?.prioritizeNearest ?? true;
+      const normalizedList = shouldPrioritizeNearest
+        ? [...list].sort((a, b) => (a.distanceMeters || 0) - (b.distanceMeters || 0))
+        : list;
       setDonors(
-        list.map((d) => ({
+        normalizedList.map((d) => ({
           id: d._id,
           name: d.name,
           bloodGroup: d.bloodGroup,
@@ -89,9 +96,10 @@ const SearchDonors = () => {
 
   useEffect(() => {
     if (!position || !isRunning) return;
+    if ((user?.settings?.donorSearch?.autoRefresh ?? true) === false) return;
     loadDonors({ lat: position.lat, lng: position.lng });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position?.lat, position?.lng, isRunning, selectedGroup, radiusKm]);
+  }, [position?.lat, position?.lng, isRunning, selectedGroup, radiusKm, user?.settings?.donorSearch?.autoRefresh]);
 
   return (
     <div className="space-y-6">
@@ -264,11 +272,9 @@ const SearchDonors = () => {
                 zoom={13}
                 style={{ height: '100%', width: '100%' }}
               >
-              <MapUpdater center={mapCenter} />
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution='&copy; OpenStreetMap contributors'
-              />
+              <RecenterMap center={mapCenter} zoom={13} />
+              <SatelliteMapLayers />
+              <NearbyMedicalPlaces center={mapCenter} radiusMeters={Math.round(radiusKm * 1000)} />
               {position && (
                 <Marker position={[position.lat, position.lng]}>
                   <Popup>
